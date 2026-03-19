@@ -16,7 +16,9 @@ resource "digitalocean_droplet" "hq" {
   region    = var.droplet_region
   size      = var.droplet_size
   image     = "ubuntu-24-04-x64"
-  user_data = file("cloud-init.sh")
+  user_data = templatefile("cloud-init.sh", {
+    github_deploy_key = var.github_deploy_key
+  })
 }
 
 resource "null_resource" "update_ssh_config" {

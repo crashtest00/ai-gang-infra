@@ -27,3 +27,9 @@ variable "verbose" {
   type        = bool
   default     = false
 }
+
+variable "github_deploy_key" {
+  description = "Private SSH deploy key for crashtest00/aigang repo"
+  type        = string
+  sensitive   = true
+}

@@ -75,111 +75,32 @@ chmod 600 /home/aigang/.ssh/authorized_keys
 sudo -u aigang git config --global user.email "ai-gang@dev"
 sudo -u aigang git config --global user.name "AI Gang"
 
-# Create AI Gang structure
-sudo -u aigang bash << 'USEREOF'
-mkdir -p ~/ai-gang/{setup,projects}
+# Write GitHub deploy key
+cat > /home/aigang/.ssh/github << 'DEPLOYKEY'
+${github_deploy_key}
+DEPLOYKEY
+chmod 600 /home/aigang/.ssh/github
 
-# Create shared agent definition files
-cat > ~/ai-gang/setup/cloud-engineering-agent.md << 'AGENT'
-# Cloud Engineering Agent
+# Configure SSH to use deploy key for GitHub
+cat > /home/aigang/.ssh/config << 'SSHCONFIG'
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/github
+SSHCONFIG
+chmod 600 /home/aigang/.ssh/config
 
-## Your Role
-You are the Cloud Engineering Agent for the AI Gang.
+# Add GitHub to known hosts (avoids interactive prompt during clone)
+ssh-keyscan github.com >> /home/aigang/.ssh/known_hosts
+chmod 644 /home/aigang/.ssh/known_hosts
+chown -R aigang:aigang /home/aigang/.ssh
 
-## Responsibilities
-- CI/CD pipelines
-- Infrastructure as Code
-- Deployment automation
-- Observability setup
-- Secrets management
+# Clone AI Gang repo
+sudo -u aigang git clone git@github.com:crashtest00/aigang.git /home/aigang/ai-gang
 
-## Working Environment
-You work inside a Docker container with:
-- Access to this project's code at /workspace
-- Access to shared best practices at /agent-docs
-- NO access to other projects (container isolation)
-
-## Key Principles
-1. Build-once-promote
-2. Policy-as-code
-3. Behavioral examples over contracts
-4. Reproducible infrastructure
-
-See /agent-docs for complete documentation.
-AGENT
-
-cat > ~/ai-gang/setup/frontend-agent.md << 'AGENT'
-# Frontend Agent
-
-## Your Role
-You are the Frontend Agent for the AI Gang.
-
-## Responsibilities
-- UI/UX development
-- Component architecture
-- Frontend testing
-- Performance optimization
-- Accessibility
-
-## Working Environment
-You work inside a Docker container with:
-- Access to this project's code at /workspace
-- Access to shared best practices at /agent-docs
-- NO access to other projects (container isolation)
-
-See /agent-docs for complete documentation.
-AGENT
-
-cat > ~/ai-gang/setup/backend-agent.md << 'AGENT'
-# Backend Agent
-
-## Your Role
-You are the Backend Agent for the AI Gang.
-
-## Responsibilities
-- API development
-- Database design
-- Authentication/authorization
-- Backend testing
-- Performance optimization
-
-## Working Environment
-You work inside a Docker container with:
-- Access to this project's code at /workspace
-- Access to shared best practices at /agent-docs
-- NO access to other projects (container isolation)
-
-See /agent-docs for complete documentation.
-AGENT
-
-# Create README
-cat > ~/ai-gang/README.md << 'README'
-# AI Gang - Development Headquarters
-
-## Architecture
-This droplet hosts containerized development workspaces.
-Each project runs in its own isolated Docker container.
-
-## Structure
-- `setup/` - Shared agent definitions (mounted read-only in all containers)
-- `projects/` - Individual project workspaces (each with own container)
-
-## Creating New Projects
-See USER_GUIDE.md for step-by-step instructions.
-
-## This Server Is For
-✅ Containerized development
-✅ Running tests in containers
-✅ Building from containers
-✅ Deploying from containers
-
-## This Server Is NOT For
-❌ Hosting production applications
-❌ Serving user traffic
-❌ Storing production data
-README
-
-USEREOF
+# Create projects dir (not tracked in repo)
+mkdir -p /home/aigang/ai-gang/projects
+chown aigang:aigang /home/aigang/ai-gang/projects
 
 # Enable Docker
 systemctl enable docker
